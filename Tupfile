@@ -1,0 +1,4 @@
+include_rules
+
+: start.S |> !cc |> start.o
+: start.o | linker.ld |> !ld -T linker.ld |> main
