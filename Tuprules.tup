@@ -3,7 +3,7 @@
 CROSS_COMPILE = arm-none-eabi-
 
 CC = $(CROSS_COMPILE)gcc
-CFLAGS = -mthumb -mcpu=cortex-m3 -static -Os -Wall -Wextra -Werror
+CFLAGS = -mthumb -mcpu=cortex-m3 -static -O0 -Wall -Wextra -Werror
 
 LD = $(CROSS_COMPILE)ld
 

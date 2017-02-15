@@ -3,6 +3,9 @@
 .fpu softvfp
 .thumb
 
+/* defined in main.c */
+.extern main
+
 /* defined in linker.ld */
 .extern stack_top
 
@@ -53,6 +56,21 @@ copy_data_loop:
   cmp  r5, r3
   bcc copy_data_init
 
+  mov r0, #0
+  mov r1, r0
+  mov r2, r0
+  mov r3, r0
+  mov r4, r0
+  mov r5, r0
+  mov r6, r0
+  mov r7, r0
+  ldr lr, =exit
+  /* set bit[0] for Thumb */
+  add lr, lr, #1
+
+  b main
+
+exit:
   b .
 
 /*
