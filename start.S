@@ -27,11 +27,18 @@
 .word hard_fault_isr + 1
 
 reset:
-  /* just to see that PC is being incremented */
-  mov r0, #0
-  add_one:
-  add r0, r0, 1
-  b add_one
+  /* clear the .bss section */
+  ldr r1, =__bss_start
+  ldr r2, =__bss_end
+  movs r0, #0x00
+  b bss_clear_loop
+bss_clear_init:
+  str r0, [r1], #4
+bss_clear_loop:
+  cmp r1, r2
+  bcc bss_clear_init
+
+  b .
 
 /*
  * Handler for the Non-Maskable Interrupts
