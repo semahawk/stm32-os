@@ -3,11 +3,10 @@
 .fpu softvfp
 .thumb
 
-.text
-
 /* defined in linker.ld */
 .extern stack_top
 
+.section .vector_table
 /*
  * The vector table
  *
@@ -25,6 +24,8 @@
 .word reset + 1
 .word nmi_isr + 1
 .word hard_fault_isr + 1
+
+.text
 
 reset:
   /* clear the .bss section */

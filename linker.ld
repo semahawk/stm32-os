@@ -9,6 +9,8 @@ SECTIONS {
   .text :
   {
     . = ALIGN(4);
+    /* the vector table has to start at address 0x0 */
+    *(.vector_table)
     *(.text*)
     text_end = .;
   } >flash
