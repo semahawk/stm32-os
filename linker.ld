@@ -10,11 +10,16 @@ SECTIONS {
   {
     . = ALIGN(4);
     *(.text*)
+    text_end = .;
   } >flash
 
-  .data :
+  . = ALIGN(4);
+  data_start_in_flash = .;
+
+  .data : AT(text_end)
   {
     . = ALIGN(4);
+    data_start_in_sram = .;
 
     *(.data)
     *(.data.*)
@@ -22,7 +27,11 @@ SECTIONS {
     stack_bottom = .;
     . += 2K;
     stack_top = ORIGIN(sram) + LENGTH(sram);
+
+    data_end_in_sram = .;
   } >sram
+
+  data_end_in_flash = .;
 
   .bss (NOLOAD):
   {

@@ -38,6 +38,20 @@ bss_clear_loop:
   cmp r1, r2
   bcc bss_clear_init
 
+  /* copy the .data section from flash to sRAM so that it can be modified */
+  movs r0, #0x0
+  ldr  r1, =data_start_in_flash
+  ldr  r2, =data_start_in_sram
+  ldr  r3, =data_end_in_flash
+copy_data_init:
+  ldr  r4, [r1, r0]
+  str  r4, [r2, r0]
+  adds r0, r0, #4
+copy_data_loop:
+  adds r5, r2, r0
+  cmp  r5, r3
+  bcc copy_data_init
+
   b .
 
 /*
