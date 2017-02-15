@@ -23,4 +23,15 @@ SECTIONS {
     . += 2K;
     stack_top = ORIGIN(sram) + LENGTH(sram);
   } >sram
+
+  .bss (NOLOAD):
+  {
+    . = ALIGN(4);
+    __bss_start = .;
+
+    *(.bss)
+    *(.bss.*)
+
+    __bss_end = .;
+  } >sram
 }
