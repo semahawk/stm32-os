@@ -1,5 +1,5 @@
 include_rules
 
-: start.S |> !cc |> start.o
-: main.c |> !cc |> main.o
-: start.o main.o | linker.ld |> !ld -T linker.ld |> main
+: foreach *.S |> !cc |> %B.o
+: foreach *.c |> !cc |> %B.o
+: *.o | linker.ld |> !ld -T linker.ld |> main
