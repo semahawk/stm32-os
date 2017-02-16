@@ -5,12 +5,41 @@
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
+  /// Base address of the RCC block
+  const RCC: u32 = 0x4002_1000;
+  /// Address of the APB2ENR register
+  const RCC_APB2ENR: u32 = RCC + 0x18;
+  /// Mask of the bit that is in charge of enabling/disabling the GPIOA port
+  const RCC_APB2ENR_IOPAEN: u32 = 1 << 2;
+
   unsafe {
-    let sram_boundary = *(0x0000_0000 as *const u32);
-    let crash = *(sram_boundary as *const u32);
+    // Enable the GPIO port A block
+    *(RCC_APB2ENR as *mut u32) |= RCC_APB2ENR_IOPAEN;
   }
 
-  loop {}
+  /// Base address of the GPIO port A block
+  const GPIOA: u32 = 0x4001_0800;
+  /// Address of the CRL register of the GPIO port A block
+  const GPIOA_CRL: u32 = GPIOA + 0x00;
+  /// Address of the BSRR register of the GPIO port A block
+  const GPIOA_BSRR: u32 = GPIOA + 0x10;
+
+  unsafe {
+    // Set GPIOA pin 5's mode to output/push-pull
+    let gpioa_crl = GPIOA_CRL as *mut u32;
+    *gpioa_crl = (*gpioa_crl & !(0b1111 << 20)) | (0b0001 << 20);
+  }
+
+  loop {
+    unsafe {
+      // Drive GPIOA pin 5 high
+      *(GPIOA_BSRR as *mut u32) = 1 << 5;
+      for _ in 0..10_000 {}
+      // Drive GPIOA pin 5 low
+      *(GPIOA_BSRR as *mut u32) = 1 << (16 + 5);
+      for _ in 0..10_000 {}
+    }
+  }
 }
 
 mod exception {
@@ -40,7 +69,8 @@ mod exception {
 
 mod lang_items {
   #[lang = "panic_fmt"]
-  extern "C" fn panic_fmt() {}
+  #[no_mangle]
+  extern "C" fn panic_fmt() { loop {} }
 }
 
 /*
