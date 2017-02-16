@@ -3,6 +3,8 @@
 #![no_main]
 #![no_std]
 
+mod gpio;
+
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
   /// Base address of the RCC block
@@ -17,28 +19,16 @@ pub extern "C" fn main() -> ! {
     *(RCC_APB2ENR as *mut u32) |= RCC_APB2ENR_IOPAEN;
   }
 
-  /// Base address of the GPIO port A block
-  const GPIOA: u32 = 0x4001_0800;
-  /// Address of the CRL register of the GPIO port A block
-  const GPIOA_CRL: u32 = GPIOA + 0x00;
-  /// Address of the BSRR register of the GPIO port A block
-  const GPIOA_BSRR: u32 = GPIOA + 0x10;
+  let gpioa = gpio::port(gpio::Port::A);
 
-  unsafe {
-    // Set GPIOA pin 5's mode to output/push-pull
-    let gpioa_crl = GPIOA_CRL as *mut u32;
-    *gpioa_crl = (*gpioa_crl & !(0b1111 << 20)) | (0b0001 << 20);
-  }
+  // Set GPIOA pin 5's mode to output/push-pull
+  gpioa.set_pin_mode(5, gpio::PinMode::OutPP);
 
   loop {
-    unsafe {
-      // Drive GPIOA pin 5 high
-      *(GPIOA_BSRR as *mut u32) = 1 << 5;
-      for _ in 0..10_000 {}
-      // Drive GPIOA pin 5 low
-      *(GPIOA_BSRR as *mut u32) = 1 << (16 + 5);
-      for _ in 0..10_000 {}
-    }
+    gpioa.enable_pin(5);
+    for _ in 0..10_000 {}
+    gpioa.disable_pin(5);
+    for _ in 0..10_000 {}
   }
 }
 
