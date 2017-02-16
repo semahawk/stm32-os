@@ -1,5 +1,0 @@
-include_rules
-
-: foreach *.S |> !cc |> %B.o
-: foreach *.c |> !cc |> %B.o
-: *.o | linker.ld |> !ld -T linker.ld |> main

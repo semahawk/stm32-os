@@ -1,0 +1,4 @@
+[root]
+name = "stm32-os"
+version = "0.1.0"
+

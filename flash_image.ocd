@@ -1,0 +1,6 @@
+init
+reset init
+halt
+flash probe 0
+flash write_image erase target/thumbv7m-none-eabi/debug/stm32-os 0x0 elf
+shutdown

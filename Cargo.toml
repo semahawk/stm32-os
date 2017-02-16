@@ -1,0 +1,6 @@
+[package]
+name = "stm32-os"
+version = "0.1.0"
+authors = ["Szymon Urbaś <szymon.urbas@aol.com>"]
+
+[dependencies]

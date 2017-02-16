@@ -1,6 +1,0 @@
-init
-reset init
-halt
-flash probe 0
-flash write_image erase main 0x0 elf
-shutdown
