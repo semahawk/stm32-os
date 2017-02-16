@@ -15,8 +15,7 @@ SECTIONS
     LONG(ORIGIN(RAM) + LENGTH(RAM))
     /* adding 1, because bit 0 has to be set, to indicate Thumb mode */
     LONG(_reset + 1);
-    LONG(_nmi_isr + 1);
-    LONG(_hard_fault_isr + 1);
+    KEEP(*(.rodata._EXCEPTIONS));
 
     /* reset handler (the main entry point) */
     _reset = .;
