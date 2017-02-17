@@ -3,21 +3,12 @@
 #![no_main]
 #![no_std]
 
+mod rcc;
 mod gpio;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
-  /// Base address of the RCC block
-  const RCC: u32 = 0x4002_1000;
-  /// Address of the APB2ENR register
-  const RCC_APB2ENR: u32 = RCC + 0x18;
-  /// Mask of the bit that is in charge of enabling/disabling the GPIOA port
-  const RCC_APB2ENR_IOPAEN: u32 = 1 << 2;
-
-  unsafe {
-    // Enable the GPIO port A block
-    *(RCC_APB2ENR as *mut u32) |= RCC_APB2ENR_IOPAEN;
-  }
+  rcc::enable(rcc::Periph::apb2_gpioa);
 
   let gpioa = gpio::port(gpio::Port::A);
 
