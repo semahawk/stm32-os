@@ -4,6 +4,7 @@
 #![no_main]
 #![no_std]
 
+mod usart;
 mod rcc;
 mod gpio;
 mod mmio;
@@ -14,14 +15,24 @@ pub extern "C" fn main() -> ! {
   rcc::initialize_clocks();
 
   rcc::enable(rcc::Periph::apb2_gpioa);
+  rcc::enable(rcc::Periph::apb2_afio);
+  rcc::enable(rcc::Periph::apb1_usart2);
 
   let gpioa = gpio::port(gpio::Port::A);
 
-  // Set GPIOA pin 5's mode to output/push-pull
+  let usart2 = usart::new(usart::Port::Usart2, usart::Baudrate::_9600);
+
+  // Set the LED pin as output/push-pull
   gpioa.set_pin_mode(5, gpio::PinMode::OutPP);
+
+  // Set the USART pins
+  gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
+  gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
   loop {
     gpioa.enable_pin(5);
+    for _ in 0..10_000 {}
+    usart2.send_byte(0x65);
     for _ in 0..10_000 {}
     gpioa.disable_pin(5);
     for _ in 0..10_000 {}

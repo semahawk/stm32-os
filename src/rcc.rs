@@ -37,10 +37,22 @@ const RCC_CFGR_PLLMUL: u32 = 0b1111 << 18;
 const RCC_CFGR_MCO: u32 = 0b1111 << 24;
 /// RCC Clock Interrupt Register address
 const RCC_CIR: u32 = RCC + 0x08;
+/// Address of the APB1ENR register
+const RCC_APB1ENR: u32 = RCC + 0x1c;
+/// Bit that is in charge of enabling/disabling the USART2 port
+const RCC_APB1ENR_USART2EN: u32 = 1 << 17;
 /// Address of the APB2ENR register
 const RCC_APB2ENR: u32 = RCC + 0x18;
-/// Mask of the bit that is in charge of enabling/disabling the GPIOA port
+/// Bit that is in charge of enabling/disabling the GPIOA port
 const RCC_APB2ENR_IOPAEN: u32 = 1 << 2;
+/// Bit that is in charge of enabling/disabling the GPIOB port
+const RCC_APB2ENR_IOPBEN: u32 = 1 << 3;
+/// Bit that is in charge of enabling/disabling the GPIOC port
+const RCC_APB2ENR_IOPCEN: u32 = 1 << 4;
+/// Bit that is in charge of enabling/disabling the GPIOD port
+const RCC_APB2ENR_IOPDEN: u32 = 1 << 5;
+/// Bit that is in charge of setting the alternate function of the IO clock
+const RCC_APB2ENR_AFIOEN: u32 = 1 << 0;
 
 /// TODO: move this out to a separate flash-specific module
 /// Base address of the flash memory interface
@@ -56,7 +68,12 @@ const FLASH_ACR_LATENCY: u32 = 0b111 << 0;
 const FLASH_ACR_PRFBTE: u32 = 0b1 << 4;
 
 pub enum Periph {
+  apb1_usart2,
+  apb2_afio,
   apb2_gpioa,
+  apb2_gpiob,
+  apb2_gpioc,
+  apb2_gpiod,
 }
 
 #[derive(PartialEq)]
@@ -70,7 +87,12 @@ pub enum Clock {
 
 pub fn enable(periph: Periph) {
   let (reg, bit) = match periph {
-    Periph::apb2_gpioa => (RCC_APB2ENR, RCC_APB2ENR_IOPAEN),
+    Periph::apb1_usart2 => (RCC_APB1ENR, RCC_APB1ENR_USART2EN),
+    Periph::apb2_afio   => (RCC_APB2ENR, RCC_APB2ENR_AFIOEN),
+    Periph::apb2_gpioa  => (RCC_APB2ENR, RCC_APB2ENR_IOPAEN),
+    Periph::apb2_gpiob  => (RCC_APB2ENR, RCC_APB2ENR_IOPBEN),
+    Periph::apb2_gpioc  => (RCC_APB2ENR, RCC_APB2ENR_IOPCEN),
+    Periph::apb2_gpiod  => (RCC_APB2ENR, RCC_APB2ENR_IOPDEN),
   };
 
   unsafe {
