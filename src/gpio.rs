@@ -51,12 +51,12 @@ pub fn port(port: Port) -> GpioPort {
 impl GpioPort {
   pub fn enable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
-    mmio::set_bit(self.base_addr + 0x10, (1 << pin) as u32);
+    mmio::set_bits(self.base_addr + 0x10, (1 << pin) as u32);
   }
 
   pub fn disable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
-    mmio::set_bit(self.base_addr + 0x10, (1 << (16 + pin)) as u32);
+    mmio::set_bits(self.base_addr + 0x10, (1 << (16 + pin)) as u32);
   }
 
   pub fn set_pin_mode(&self, pin: u8, mode: PinMode) {
