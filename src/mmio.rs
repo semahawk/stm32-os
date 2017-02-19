@@ -27,8 +27,8 @@ pub fn write_u8(reg: u32, val: u8) {
   }
 }
 
-pub fn set_bit(reg: u32, bit_position: u32) {
-  write(reg, read(reg) | (1 << bit_position))
+pub fn set_bit(reg: u32, bit: u32) {
+  write(reg, read(reg) | bit)
 }
 
 /*
