@@ -6,6 +6,8 @@
 // Created on: 16 Feb 2017 21:36:10 +0100 (CET)
 //
 
+use mmio;
+
 pub enum Port {
   A,
   B,
@@ -49,21 +51,17 @@ pub fn port(port: Port) -> GpioPort {
 impl GpioPort {
   pub fn enable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
-    unsafe {
-      *((self.base_addr + 0x10) as *mut u32) = 1 << pin;
-    }
+    mmio::set_bit(self.base_addr + 0x10, pin as u32);
   }
 
   pub fn disable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
-    unsafe {
-      *((self.base_addr + 0x10) as *mut u32) = 1 << (16 + pin);
-    }
+    mmio::set_bit(self.base_addr + 0x10, pin as u32 + 16);
   }
 
   pub fn set_pin_mode(&self, pin: u8, mode: PinMode) {
     /* 0x0 is the offset of the CRL register */
-    let crl = (self.base_addr + 0x0) as *mut u32;
+    let crl = self.base_addr + 0x0;
 
     let bits = match mode {
       PinMode::Analog      => 0b0000,
@@ -75,9 +73,7 @@ impl GpioPort {
       PinMode::OutAltDrain => 0b1110,
     };
 
-    unsafe {
-      *crl = (*crl & !(0b1111 << (4 * pin))) | (bits << (4 * pin));
-    }
+    mmio::write(crl, (mmio::read(crl) & !(0b1111 << (4 * pin))) | (bits << (4 * pin)));
   }
 }
 
