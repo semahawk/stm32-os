@@ -31,6 +31,10 @@ pub fn set_bits(reg: u32, bits: u32) {
   write(reg, read(reg) | bits)
 }
 
+pub fn unset_bits(reg: u32, bits: u32) {
+  write(reg, read(reg) & !(bits))
+}
+
 /*
  * vi: ts=2 sw=2 expandtab
  */
