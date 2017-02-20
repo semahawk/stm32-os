@@ -29,10 +29,10 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
+  usart2.send_string("Clocks initialized (SYSCLK = 36MHz)\r\n");
+
   loop {
     gpioa.enable_pin(5);
-    for _ in 0..10_000 {}
-    usart2.send_byte(0x65);
     for _ in 0..10_000 {}
     gpioa.disable_pin(5);
     for _ in 0..10_000 {}

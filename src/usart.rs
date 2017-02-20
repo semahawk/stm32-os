@@ -97,6 +97,12 @@ impl Usart {
     // Wait until the transmission is complete
     while mmio::read(usart_sr) & USART_SR_TC != 0 { }
   }
+
+  pub fn send_string(&self, string: &str) {
+    for c in string.chars() {
+      self.send_byte(c as u8);
+    }
+  }
 }
 
 /*
