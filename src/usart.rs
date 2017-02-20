@@ -7,6 +7,7 @@
 //
 
 use mmio;
+use rcc;
 
 /// Status Register
 const USART_SR: u32 = 0x00;
@@ -34,8 +35,8 @@ const USART_CR1_TE: u32 = 1 << 3;
 const USART_CR2: u32 = 0x10;
 
 pub enum Baudrate {
-  _9600,
-  _115200,
+  _9600   = 9600,
+  _115200 = 115200,
 }
 
 pub enum Port {
@@ -49,10 +50,10 @@ pub struct Usart {
 }
 
 pub fn new(port: Port, baudrate: Baudrate) -> Usart {
-  let base_addr = match port {
-    Port::Usart1 => 0x4001_3800,
-    Port::Usart2 => 0x4000_4400,
-    Port::Usart3 => 0x4000_4800,
+  let (base_addr, clock) = match port {
+    Port::Usart1 => (0x4001_3800, rcc::Clock::PCLK2),
+    Port::Usart2 => (0x4000_4400, rcc::Clock::PCLK1),
+    Port::Usart3 => (0x4000_4800, rcc::Clock::PCLK1),
   };
 
   let usart_cr1 = base_addr + USART_CR1;
@@ -66,9 +67,12 @@ pub fn new(port: Port, baudrate: Baudrate) -> Usart {
     // Enable transmition and reception
     mmio::set_bits(usart_cr1, USART_CR1_TE | USART_CR1_RE);
 
-    // Assuming 32MHz of PCLK1's frequency and 115200 baudrate
-    // TODO calculate this
-    mmio::write(usart_brr, 0b100010110);
+    // Assuming 32MHz of PCLK1's frequency
+    match baudrate {
+      // TODO ugh actually calculate it
+      Baudrate::_9600   => mmio::write(usart_brr, 0b110100000101),
+      Baudrate::_115200 => mmio::write(usart_brr, 0b000100010110),
+    }
 
     // Enable the UART
     mmio::set_bits(usart_cr1, USART_CR1_UE);

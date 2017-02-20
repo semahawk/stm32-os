@@ -20,7 +20,7 @@ pub extern "C" fn main() -> ! {
 
   let gpioa = gpio::port(gpio::Port::A);
 
-  let usart2 = usart::new(usart::Port::Usart2, usart::Baudrate::_9600);
+  let usart2 = usart::new(usart::Port::Usart2, usart::Baudrate::_115200);
 
   // Set the LED pin as output/push-pull
   gpioa.set_pin_mode(5, gpio::PinMode::OutPP);
