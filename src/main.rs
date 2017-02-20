@@ -1,4 +1,5 @@
 #![feature(lang_items)]
+#![feature(core_intrinsics)]
 #![feature(asm)]
 #![no_main]
 #![no_std]
@@ -9,6 +10,8 @@ mod mmio;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
+  rcc::initialize_clocks();
+
   rcc::enable(rcc::Periph::apb2_gpioa);
 
   let gpioa = gpio::port(gpio::Port::A);
