@@ -7,6 +7,7 @@
 mod rcc;
 mod gpio;
 mod mmio;
+mod conf;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {

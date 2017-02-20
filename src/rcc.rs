@@ -7,6 +7,7 @@
 //
 
 use mmio;
+use conf;
 
 /// Base address of the RCC block
 const RCC: u32 = 0x4002_1000;
@@ -22,11 +23,17 @@ const RCC_CR_PLLRDY: u32 = 1 << 25;
 const RCC_CFGR: u32 = RCC + 0x04;
 const RCC_CFGR_SW: u32 = 0b11 << 0;
 const RCC_CFGR_SWS: u32 = 0b11 << 2;
+const RCC_CFGR_SWS_HSI: u32 = 0b00 << 2;
+const RCC_CFGR_SWS_HSE: u32 = 0b01 << 2;
+const RCC_CFGR_SWS_PLL: u32 = 0b10 << 2;
 const RCC_CFGR_HPRE: u32 = 0b1111 << 4;
 const RCC_CFGR_PPRE1: u32 = 0b111 << 8;
 const RCC_CFGR_PPRE2: u32 = 0b111 << 11;
 const RCC_CFGR_ADCPRE: u32 = 0b11 << 14;
 const RCC_CFGR_PLLSRC: u32 = 0b1 << 16;
+const RCC_CFGR_PLLSRC_HSI: u32 = 0b0 << 16;
+const RCC_CFGR_PLLSRC_HSE: u32 = 0b1 << 16;
+const RCC_CFGR_PLLMUL: u32 = 0b1111 << 18;
 const RCC_CFGR_MCO: u32 = 0b1111 << 24;
 /// RCC Clock Interrupt Register address
 const RCC_CIR: u32 = RCC + 0x08;
@@ -50,6 +57,15 @@ const FLASH_ACR_PRFBTE: u32 = 0b1 << 4;
 
 pub enum Periph {
   apb2_gpioa,
+}
+
+#[derive(PartialEq)]
+pub enum Clock {
+  SYSCLK,
+  HCLK,
+  PCLK1,
+  PCLK2,
+  // TODO SDIOCLK, FSMCCLK, FCLK, TIMXCLK, ADCCLK etc.
 }
 
 pub fn enable(periph: Periph) {
@@ -102,6 +118,46 @@ pub fn initialize_clocks() {
 
   // Wait till PLL is actually used as the system clock
   while mmio::read(RCC_CFGR) & RCC_CFGR_SWS != 0b10 << 2 { }
+}
+
+pub fn get_clock_speed(clock: Clock) -> u32 {
+  let sysclk = match mmio::read(RCC_CFGR) & RCC_CFGR_SWS {
+    /* HSI oscillator used as system clock */
+    RCC_CFGR_SWS_HSI => conf::HSI_BASE_FREQUENCY,
+    /* HSE oscillator used as system clock */
+    RCC_CFGR_SWS_HSE => conf::HSE_BASE_FREQUENCY,
+    /* PLL used as system clock */
+    RCC_CFGR_SWS_PLL => {
+      let pll_in_freq = match mmio::read(RCC_CFGR) & RCC_CFGR_PLLSRC {
+        RCC_CFGR_PLLSRC_HSI => conf::HSI_BASE_FREQUENCY / 2,
+        RCC_CFGR_PLLSRC_HSE => conf::HSE_BASE_FREQUENCY,
+        _ => panic!(),
+      };
+
+      // Use the fact that 0b0000 => 2, 0b0001 => 3, 0b0010 => 4, etc.
+      let pll_multiplier = ((mmio::read(RCC_CFGR) & RCC_CFGR_PLLMUL) >> 18) + 2;
+
+      pll_in_freq * pll_multiplier
+    },
+    _ => panic!(),
+  };
+
+  let hpre = (mmio::read(RCC_CFGR) & RCC_CFGR_HPRE) >> 4;
+  let hclk = sysclk >> (((hpre & 0b1000) >> 3) * ((hpre & 0b111) + 1));
+
+  let ppre1 = (mmio::read(RCC_CFGR) & RCC_CFGR_PPRE1) >> 8;
+  let pclk1 = hclk >> (((ppre1 & 0b100) >> 2) * ((ppre1 & 0b11) + 1));
+
+  let ppre2 = (mmio::read(RCC_CFGR) & RCC_CFGR_PPRE2) >> 11;
+  let pclk2 = hclk >> (((ppre2 & 0b100) >> 2) * ((ppre2 & 0b11) + 1));
+
+  // Return the requested value here so that we exhaust all input patterns
+  return match clock {
+    Clock::SYSCLK => sysclk,
+    Clock::HCLK   => hclk,
+    Clock::PCLK1  => pclk1,
+    Clock::PCLK2  => pclk2,
+  };
 }
 
 /*
