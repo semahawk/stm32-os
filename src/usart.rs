@@ -11,6 +11,8 @@ use rcc;
 
 /// Status Register
 const USART_SR: u32 = 0x00;
+/// Read data register not empty (data ready to be read)
+const USART_SR_RXNE: u32 = 1 << 5;
 /// Transmission complete
 const USART_SR_TC: u32 = 1 << 6;
 /// Transmitter data register empty (ie. can send bytes?)
@@ -102,6 +104,15 @@ impl Usart {
     for c in string.chars() {
       self.send_byte(c as u8);
     }
+  }
+
+  pub fn get_byte(&self) -> u8 {
+    let usart_sr = self.base_addr + USART_SR;
+    let usart_dr = self.base_addr + USART_DR;
+
+    while mmio::read(usart_sr) & USART_SR_RXNE == 0 { }
+
+    (mmio::read(usart_dr) & 0xff) as u8
   }
 }
 

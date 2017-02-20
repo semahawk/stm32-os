@@ -30,12 +30,14 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
   usart2.send_string("Clocks initialized (SYSCLK = 36MHz)\r\n");
+  usart2.send_string("Press all of them keys!\r\n");
 
   loop {
-    gpioa.enable_pin(5);
-    for _ in 0..10_000 {}
-    gpioa.disable_pin(5);
-    for _ in 0..10_000 {}
+    if usart2.get_byte() & 1 != 0 {
+      gpioa.enable_pin(5);
+    } else {
+      gpioa.disable_pin(5);
+    }
   }
 }
 
