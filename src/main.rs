@@ -33,9 +33,13 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
-  write!(usart2, "Clocks initialized (SYSCLK = {} Hz)\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
+  write!(usart2, "Clocks initialized\r\n");
+  write!(usart2, "SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
+  write!(usart2, "HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
+  write!(usart2, "PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
+  write!(usart2, "PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
+  write!(usart2, "\r\n");
   write!(usart2, "Available commands are 'blink' and 'hello'\r\n");
-  write!(usart2, "Hello, write! High {}!\r\n", 5);
 
   loop {
     let mut buf = [0u8; 32];
