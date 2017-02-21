@@ -38,6 +38,7 @@ const USART_CR1_TE: u32 = 1 << 3;
 /// UART Control Register (2)
 const USART_CR2: u32 = 0x10;
 
+#[derive(Copy,Clone)]
 pub enum Baudrate {
   _9600   = 9600,
   _115200 = 115200,
@@ -71,12 +72,20 @@ pub fn new(port: Port, baudrate: Baudrate) -> Usart {
     // Enable transmition and reception
     mmio::set_bits(usart_cr1, USART_CR1_TE | USART_CR1_RE);
 
-    // Assuming 32MHz of PCLK1's frequency
-    match baudrate {
-      // TODO ugh actually calculate it
-      Baudrate::_9600   => mmio::write(usart_brr, 0b110100000101),
-      Baudrate::_115200 => mmio::write(usart_brr, 0b000100010110),
+    // Calculate what the contents of USART_BRR should be
+    let mut usartdiv = 0;
+    let mut clock_speed = rcc::get_clock_speed(clock);
+
+    while clock_speed >= (16 * baudrate as u32) {
+      usartdiv += 1;
+      clock_speed -= (16 * baudrate as u32);
     }
+
+    usartdiv = usartdiv << 4;
+
+    // Actually set the baud rate (it's not perfect since the fractional bit is not taken into
+    // account)
+    mmio::write(usart_brr, usartdiv);
 
     // Enable the UART
     mmio::set_bits(usart_cr1, USART_CR1_UE);
