@@ -6,6 +6,8 @@
 
 extern crate rlibc;
 
+use core::fmt::Write;
+
 mod usart;
 mod rcc;
 mod gpio;
@@ -22,7 +24,7 @@ pub extern "C" fn main() -> ! {
 
   let gpioa = gpio::port(gpio::Port::A);
 
-  let usart2 = usart::new(usart::Port::Usart2, usart::Baudrate::_115200);
+  let mut usart2 = usart::new(usart::Port::Usart2, usart::Baudrate::_115200);
 
   // Set the LED pin as output/push-pull
   gpioa.set_pin_mode(5, gpio::PinMode::OutPP);
@@ -31,12 +33,13 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
-  usart2.send_string("Clocks initialized (SYSCLK = 36MHz)\r\n");
-  usart2.send_string("Available commands are 'blink' and 'hello'\r\n");
+  write!(usart2, "Clocks initialized (SYSCLK = 36MHz)\r\n");
+  write!(usart2, "Available commands are 'blink' and 'hello'\r\n");
+  write!(usart2, "Hello, write! High {}!\r\n", 5);
 
   loop {
     let mut buf = [0u8; 32];
-    usart2.send_string(": ");
+    write!(usart2, ": ");
 
     usart2.get_string(&mut buf);
 
@@ -46,7 +49,7 @@ pub extern "C" fn main() -> ! {
       gpioa.disable_pin(5);
       for _ in 0..10_000 {  };
     } else if buf.starts_with(b"hello") {
-      usart2.send_string("well hello to you too!\r\n");
+      write!(usart2, "well hello to you too!\r\n");
     }
   }
 }
@@ -74,6 +77,18 @@ mod exception {
     Some(dummy_handler), // PendSV
     Some(dummy_handler), // Systick
   ];
+}
+
+#[no_mangle]
+pub unsafe extern fn __aeabi_memclr4(s: *mut u8, n: usize) -> *mut u8 {
+  let mut i = 0;
+
+  while i < n {
+    *s.offset(i as isize) = 0u8;
+    i += 1;
+  }
+
+  return s;
 }
 
 mod lang_items {

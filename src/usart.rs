@@ -6,6 +6,8 @@
 // Created on: 17 Feb 2017 18:08:54 +0100 (CET)
 //
 
+use core::fmt;
+
 use mmio;
 use rcc;
 
@@ -133,6 +135,16 @@ impl Usart {
       buf[i] = byte;
       i += 1;
     }
+  }
+}
+
+impl fmt::Write for Usart {
+  fn write_str(&mut self, s: &str) -> fmt::Result {
+    for byte in s.bytes() {
+      self.send_byte(byte)
+    }
+
+    Ok(())
   }
 }
 
