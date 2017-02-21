@@ -33,7 +33,7 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
-  write!(usart2, "Clocks initialized (SYSCLK = 36MHz)\r\n");
+  write!(usart2, "Clocks initialized (SYSCLK = {} Hz)\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
   write!(usart2, "Available commands are 'blink' and 'hello'\r\n");
   write!(usart2, "Hello, write! High {}!\r\n", 5);
 
