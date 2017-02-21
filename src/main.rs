@@ -4,6 +4,8 @@
 #![no_main]
 #![no_std]
 
+extern crate rlibc;
+
 mod usart;
 mod rcc;
 mod gpio;
@@ -30,13 +32,21 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
   usart2.send_string("Clocks initialized (SYSCLK = 36MHz)\r\n");
-  usart2.send_string("Press all of them keys!\r\n");
+  usart2.send_string("Available commands are 'blink' and 'hello'\r\n");
 
   loop {
-    if usart2.get_byte() & 1 != 0 {
+    let mut buf = [0u8; 32];
+    usart2.send_string(": ");
+
+    usart2.get_string(&mut buf);
+
+    if buf.starts_with(b"blink") {
       gpioa.enable_pin(5);
-    } else {
+      for _ in 0..10_000 {  };
       gpioa.disable_pin(5);
+      for _ in 0..10_000 {  };
+    } else if buf.starts_with(b"hello") {
+      usart2.send_string("well hello to you too!\r\n");
     }
   }
 }

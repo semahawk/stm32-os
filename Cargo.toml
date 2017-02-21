@@ -7,3 +7,4 @@ authors = ["Szymon Urbaś <szymon.urbas@aol.com>"]
 panic = "abort"
 
 [dependencies]
+rlibc = "1.0.0"

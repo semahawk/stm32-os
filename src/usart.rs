@@ -114,6 +114,26 @@ impl Usart {
 
     (mmio::read(usart_dr) & 0xff) as u8
   }
+
+  pub fn get_string(&self, buf: &mut [u8]) {
+    let mut i = 0;
+
+    loop {
+      let byte = self.get_byte();
+      if i >= buf.len() { break; }
+
+      if byte == 0xa || byte == 0xd {
+        self.send_byte(0xa);
+        self.send_byte(0xd);
+        break;
+      }
+
+      self.send_byte(byte);
+
+      buf[i] = byte;
+      i += 1;
+    }
+  }
 }
 
 /*
