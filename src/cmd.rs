@@ -6,13 +6,15 @@
 // Created on: 22 Feb 2017 17:54:08 +0100 (CET)
 //
 
+use core::str::Split;
+
 use gpio;
 
-const commands: &'static [(&str, fn ())] = &[
-  ("blink", blink),
+const commands: &'static [(&str, fn (Split<char>))] = &[
+  ("gpio", gpio),
 ];
 
-pub fn lookup_command(cmd: &str) -> Option<fn ()> {
+pub fn lookup_command(cmd: &str) -> Option<fn (Split<char>)> {
   for &(command, function) in commands {
     if command == cmd {
       return Some(function)
@@ -22,12 +24,36 @@ pub fn lookup_command(cmd: &str) -> Option<fn ()> {
   None
 }
 
-fn blink() {
-  let gpioa = gpio::port(gpio::Port::A);
-  gpioa.enable_pin(5);
-  for _ in 0..10_000 {  };
-  gpioa.disable_pin(5);
-  for _ in 0..10_000 {  };
+fn gpio(mut args: Split<char>) {
+  enum Op { set, clear };
+
+  let op = match args.next() {
+    Some("set") => Op::set,
+    Some("clear") => Op::clear,
+    _ => return, // TODO error message
+  };
+
+  let port = match args.next() {
+    Some("A") | Some("a") => gpio::Port::A,
+    _ => return, // TODO error message
+  };
+
+  let pin = match args.next() {
+    Some(pin) => pin.parse::<u8>().unwrap(),
+    None => return, // TODO error message
+  };
+
+  if pin > 15 {
+    // TODO error message
+    return;
+  }
+
+  let gpio = gpio::port(port);
+
+  match op {
+    Op::set   => gpio.enable_pin(pin),
+    Op::clear => gpio.disable_pin(pin),
+  }
 }
 
 /*

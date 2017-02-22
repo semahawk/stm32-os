@@ -42,7 +42,7 @@ pub extern "C" fn main() -> ! {
   write!(usart2, "PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
   write!(usart2, "PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
   write!(usart2, "\r\n");
-  write!(usart2, "Available commands are 'blink'\r\n");
+  write!(usart2, "Available command is 'gpio <set|clear> <port> <pin>'\r\n");
 
   loop {
     let mut buf = [0u8; 32];
@@ -60,7 +60,7 @@ pub extern "C" fn main() -> ! {
       Some(command) => {
         match cmd::lookup_command(command) {
           Some(handler) => {
-            handler();
+            handler(args);
           },
           None => {
             write!(usart2, "Unknown command: {}\r\n", command);
