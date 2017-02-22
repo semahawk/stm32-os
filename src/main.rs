@@ -7,6 +7,8 @@
 extern crate rlibc;
 
 use core::fmt::Write;
+use core::slice;
+use core::str;
 
 mod usart;
 mod rcc;
@@ -47,13 +49,24 @@ pub extern "C" fn main() -> ! {
 
     usart2.get_string(&mut buf);
 
-    if buf.starts_with(b"blink") {
-      gpioa.enable_pin(5);
-      for _ in 0..10_000 {  };
-      gpioa.disable_pin(5);
-      for _ in 0..10_000 {  };
-    } else if buf.starts_with(b"hello") {
-      write!(usart2, "well hello to you too!\r\n");
+    let input = unsafe {
+      str::from_utf8_unchecked(slice::from_raw_parts(buf.as_ptr(), buf.len()))
+    };
+
+    let mut args = input.split('\u{0}').next().unwrap().split(' ');
+
+    match args.next() {
+      Some(command) => {
+        if command == "blink" {
+          gpioa.enable_pin(5);
+          for _ in 0..10_000 {  };
+          gpioa.disable_pin(5);
+          for _ in 0..10_000 {  };
+        } else if command == "hello" {
+          write!(usart2, "well hello to you too!\r\n");
+        }
+      },
+      None => (),
     }
   }
 }
