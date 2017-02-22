@@ -15,6 +15,7 @@ mod rcc;
 mod gpio;
 mod mmio;
 mod conf;
+mod cmd;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
@@ -41,7 +42,7 @@ pub extern "C" fn main() -> ! {
   write!(usart2, "PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
   write!(usart2, "PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
   write!(usart2, "\r\n");
-  write!(usart2, "Available commands are 'blink' and 'hello'\r\n");
+  write!(usart2, "Available commands are 'blink'\r\n");
 
   loop {
     let mut buf = [0u8; 32];
@@ -57,13 +58,13 @@ pub extern "C" fn main() -> ! {
 
     match args.next() {
       Some(command) => {
-        if command == "blink" {
-          gpioa.enable_pin(5);
-          for _ in 0..10_000 {  };
-          gpioa.disable_pin(5);
-          for _ in 0..10_000 {  };
-        } else if command == "hello" {
-          write!(usart2, "well hello to you too!\r\n");
+        match cmd::lookup_command(command) {
+          Some(handler) => {
+            handler();
+          },
+          None => {
+            write!(usart2, "Unknown command: {}\r\n", command);
+          },
         }
       },
       None => (),
