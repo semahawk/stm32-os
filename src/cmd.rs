@@ -9,6 +9,8 @@
 use core::str::Split;
 use core::fmt::Write;
 
+use gpio::Gpio_trait;
+
 use gpio;
 use usart;
 
@@ -38,8 +40,8 @@ fn gpio(mut args: Split<char>) {
     }
   };
 
-  let port = match args.next() {
-    Some("A") | Some("a") => gpio::Port::A,
+  let (gpio, port) = match args.next() {
+    Some("A") | Some("a") => (gpio::GPIOA, "A"),
     _ => {
       write!(usart::USART2, "Usage: gpio <set|clear> <A> <0-15>\r\n");
       return;
@@ -59,16 +61,14 @@ fn gpio(mut args: Split<char>) {
     return;
   }
 
-  let gpio = gpio::port(port);
-
   match op {
-    Op::set   => {
-      write!(usart::USART2, "Enabled pin {} in port {:?}\r\n", pin, port);
+    Op::set => {
       gpio.enable_pin(pin);
+      write!(usart::USART2, "Enabled pin {} in GPIO port {}\r\n", pin, port);
     },
     Op::clear => {
-      write!(usart::USART2, "Disabled pin {} in port {:?}\r\n", pin, port);
       gpio.disable_pin(pin);
+      write!(usart::USART2, "Disabled pin {} in GPIO port {}\r\n", pin, port);
     }
   }
 }

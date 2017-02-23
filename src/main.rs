@@ -11,6 +11,7 @@ use core::slice;
 use core::str;
 
 use usart::Usart_trait;
+use gpio::Gpio_trait;
 
 mod usart;
 mod rcc;
@@ -27,16 +28,15 @@ pub extern "C" fn main() -> ! {
   rcc::enable(rcc::Periph::apb2_afio);
   rcc::enable(rcc::Periph::apb1_usart2);
 
-  let gpioa = gpio::port(gpio::Port::A);
-
+  // Initialize USART2 (the one that goes through the debugger/the USB cable)
   usart::USART2.initialize(usart::Baudrate::_115200);
 
   // Set the LED pin as output/push-pull
-  gpioa.set_pin_mode(5, gpio::PinMode::OutPP);
+  gpio::GPIOA.set_pin_mode(5, gpio::PinMode::OutPP);
 
   // Set the USART pins
-  gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
-  gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
+  gpio::GPIOA.set_pin_mode(2, gpio::PinMode::OutAltPP);
+  gpio::GPIOA.set_pin_mode(3, gpio::PinMode::InFloat);
 
   write!(usart::USART2, "Clocks initialized\r\n");
   write!(usart::USART2, "SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));

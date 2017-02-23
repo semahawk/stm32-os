@@ -6,19 +6,6 @@
 // Created on: 16 Feb 2017 21:36:10 +0100 (CET)
 //
 
-use mmio;
-
-#[derive(Debug, Clone, Copy)]
-pub enum Port {
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-}
-
 pub enum PinMode {
   Analog,
   InFloat,
@@ -29,40 +16,55 @@ pub enum PinMode {
   OutAltDrain,
 }
 
-pub struct GpioPort {
-  base_addr: u32,
+#[repr(packed)]
+struct Gpio_register_map {
+  CRL:  u32,
+  CRH:  u32,
+  IDR:  u32,
+  ODR:  u32,
+  BSRR: u32,
+  BRR:  u32,
+  LCK:  u32,
 }
 
-pub fn port(port: Port) -> GpioPort {
-  let base_addr = match port {
-    Port::A => 0x4001_0800,
-    Port::B => 0x4001_0C00,
-    Port::C => 0x4001_1000,
-    Port::D => 0x4001_1400,
-    Port::E => 0x4001_1800,
-    Port::F => 0x4001_1C00,
-    Port::G => 0x4001_2000,
-  };
-
-  GpioPort {
-    base_addr: base_addr,
-  }
+pub trait Gpio_trait {
+  fn enable_pin(&self, pin: u8);
+  fn disable_pin(&self, pin: u8);
+  fn set_pin_mode(&self, pin: u8, mode: PinMode);
 }
 
-impl GpioPort {
-  pub fn enable_pin(&self, pin: u8) {
+#[derive(Debug)]
+pub struct Gpio(u32);
+
+pub const GPIOA: Gpio = Gpio(0x4001_0800);
+pub const GPIOB: Gpio = Gpio(0x4001_0C00);
+pub const GPIOC: Gpio = Gpio(0x4001_1000);
+pub const GPIOD: Gpio = Gpio(0x4001_1400);
+pub const GPIOE: Gpio = Gpio(0x4001_1800);
+pub const GPIOF: Gpio = Gpio(0x4001_1C00);
+pub const GPIOG: Gpio = Gpio(0x4001_2000);
+
+impl Gpio_trait for Gpio {
+  fn enable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
-    mmio::set_bits(self.base_addr + 0x10, (1 << pin) as u32);
+    let regmap = self.0 as *mut Gpio_register_map;
+
+    unsafe {
+      (*regmap).BSRR |= 1u32 << pin;
+    }
   }
 
-  pub fn disable_pin(&self, pin: u8) {
+  fn disable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
-    mmio::set_bits(self.base_addr + 0x10, (1 << (16 + pin)) as u32);
+    let regmap = self.0 as *mut Gpio_register_map;
+
+    unsafe {
+      (*regmap).BSRR |= 1u32 << (16u32 + pin as u32);
+    }
   }
 
-  pub fn set_pin_mode(&self, pin: u8, mode: PinMode) {
-    /* 0x0 is the offset of the CRL register */
-    let crl = self.base_addr + 0x0;
+  fn set_pin_mode(&self, pin: u8, mode: PinMode) {
+    let regmap = self.0 as *mut Gpio_register_map;
 
     let bits = match mode {
       PinMode::Analog      => 0b0000,
@@ -74,7 +76,9 @@ impl GpioPort {
       PinMode::OutAltDrain => 0b1110,
     };
 
-    mmio::write(crl, (mmio::read(crl) & !(0b1111 << (4 * pin))) | (bits << (4 * pin)));
+    unsafe {
+      (*regmap).CRL = ((*regmap).CRL & !(0b1111 << (4 * pin))) | (bits << (4 * pin))
+    }
   }
 }
 
