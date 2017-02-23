@@ -76,7 +76,7 @@ pub enum Periph {
   apb2_gpiod,
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Clock {
   SYSCLK,
   HCLK,

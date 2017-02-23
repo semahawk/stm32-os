@@ -7,8 +7,10 @@
 //
 
 use core::fmt;
+use gpio::Gpio_trait;
 
 use rcc;
+use gpio;
 
 /// Read data register not empty (data ready to be read)
 const USART_SR_RXNE: u32 = 1 << 5;
@@ -39,6 +41,7 @@ struct Usart_register_map {
 }
 
 /// Base address + the peripheral clock
+#[derive(PartialEq)]
 pub struct Usart(u32, rcc::Clock);
 
 pub const USART1: Usart = Usart(0x4001_3800, rcc::Clock::PCLK2);
@@ -86,6 +89,12 @@ impl Usart_trait for Usart {
 
       // Enable the UART
       (*regmap).CR1 |= USART_CR1_UE;
+    }
+
+    if self == USART2 {
+      // Set the USART pins
+      gpio::GPIOA.set_pin_mode(2, gpio::PinMode::OutAltPP);
+      gpio::GPIOA.set_pin_mode(3, gpio::PinMode::InFloat);
     }
   }
 

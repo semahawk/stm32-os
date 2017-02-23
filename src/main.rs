@@ -34,10 +34,6 @@ pub extern "C" fn main() -> ! {
   // Set the LED pin as output/push-pull
   gpio::GPIOA.set_pin_mode(5, gpio::PinMode::OutPP);
 
-  // Set the USART pins
-  gpio::GPIOA.set_pin_mode(2, gpio::PinMode::OutAltPP);
-  gpio::GPIOA.set_pin_mode(3, gpio::PinMode::InFloat);
-
   write!(usart::USART2, "Clocks initialized\r\n");
   write!(usart::USART2, "SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
   write!(usart::USART2, "HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
