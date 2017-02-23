@@ -8,6 +8,7 @@
 
 use mmio;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Port {
   A,
   B,

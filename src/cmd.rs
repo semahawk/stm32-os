@@ -7,8 +7,10 @@
 //
 
 use core::str::Split;
+use core::fmt::Write;
 
 use gpio;
+use usart;
 
 const commands: &'static [(&str, fn (Split<char>))] = &[
   ("gpio", gpio),
@@ -30,29 +32,44 @@ fn gpio(mut args: Split<char>) {
   let op = match args.next() {
     Some("set") => Op::set,
     Some("clear") => Op::clear,
-    _ => return, // TODO error message
+    _ => {
+      write!(usart::USART2, "Usage: gpio <set|clear> <A> <0-15>\r\n");
+      return;
+    }
   };
 
   let port = match args.next() {
     Some("A") | Some("a") => gpio::Port::A,
-    _ => return, // TODO error message
+    _ => {
+      write!(usart::USART2, "Usage: gpio <set|clear> <A> <0-15>\r\n");
+      return;
+    }
   };
 
   let pin = match args.next() {
     Some(pin) => pin.parse::<u8>().unwrap(),
-    None => return, // TODO error message
+    None => {
+      write!(usart::USART2, "Usage: gpio <set|clear> <A> <0-15>\r\n");
+      return;
+    }
   };
 
   if pin > 15 {
-    // TODO error message
+    write!(usart::USART2, "Usage: gpio <set|clear> <A> <0-15>\r\n");
     return;
   }
 
   let gpio = gpio::port(port);
 
   match op {
-    Op::set   => gpio.enable_pin(pin),
-    Op::clear => gpio.disable_pin(pin),
+    Op::set   => {
+      write!(usart::USART2, "Enabled pin {} in port {:?}\r\n", pin, port);
+      gpio.enable_pin(pin);
+    },
+    Op::clear => {
+      write!(usart::USART2, "Disabled pin {} in port {:?}\r\n", pin, port);
+      gpio.disable_pin(pin);
+    }
   }
 }
 
