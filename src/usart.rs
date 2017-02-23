@@ -38,95 +38,94 @@ const USART_CR1_TE: u32 = 1 << 3;
 /// UART Control Register (2)
 const USART_CR2: u32 = 0x10;
 
+#[repr(packed)]
+struct Usart_register_map {
+  SR:   u32,
+  DR:   u32,
+  BRR:  u32,
+  CR1:  u32,
+  CR2:  u32,
+  CR3:  u32,
+  GTPR: u32,
+}
+
+/// Base address + the peripheral clock
+pub struct Usart(u32, rcc::Clock);
+
+pub const USART1: Usart = Usart(0x4001_3800, rcc::Clock::PCLK2);
+pub const USART2: Usart = Usart(0x4000_4400, rcc::Clock::PCLK1);
+pub const USART3: Usart = Usart(0x4000_4800, rcc::Clock::PCLK1);
+// TODO: UART4 and UART5
+
 #[derive(Copy,Clone)]
 pub enum Baudrate {
   _9600   = 9600,
   _115200 = 115200,
 }
 
-pub enum Port {
-  Usart1,
-  Usart2,
-  Usart3,
+pub trait Usart_trait {
+  fn initialize(self, baudrate: Baudrate);
+  fn send_byte(&self, byte: u8);
+  fn get_byte(&self) -> u8;
+  fn get_string(&self, buf: &mut [u8]);
 }
 
-pub struct Usart {
-  base_addr: u32,
-}
+impl Usart_trait for Usart {
+  fn initialize(self, baudrate: Baudrate) {
+    let regmap = self.0 as *mut Usart_register_map;
 
-pub fn new(port: Port, baudrate: Baudrate) -> Usart {
-  let (base_addr, clock) = match port {
-    Port::Usart1 => (0x4001_3800, rcc::Clock::PCLK2),
-    Port::Usart2 => (0x4000_4400, rcc::Clock::PCLK1),
-    Port::Usart3 => (0x4000_4800, rcc::Clock::PCLK1),
-  };
-
-  let usart_cr1 = base_addr + USART_CR1;
-  let usart_cr2 = base_addr + USART_CR2;
-  let usart_brr = base_addr + USART_BRR;
-
-  unsafe {
-    // Configure stop bits (00 - 1 stop bit)
-    mmio::write(usart_cr2, 0x0);
-
-    // Enable transmition and reception
-    mmio::set_bits(usart_cr1, USART_CR1_TE | USART_CR1_RE);
-
-    // Calculate what the contents of USART_BRR should be
     let mut usartdiv = 0;
-    let mut clock_speed = rcc::get_clock_speed(clock);
+    let mut clock_speed = rcc::get_clock_speed(self.1);
 
-    while clock_speed >= (16 * baudrate as u32) {
+    while clock_speed >= 16 * baudrate as u32 {
       usartdiv += 1;
-      clock_speed -= (16 * baudrate as u32);
+      clock_speed -= 16 * baudrate as u32;
     }
 
     usartdiv = usartdiv << 4;
 
-    // Actually set the baud rate (it's not perfect since the fractional bit is not taken into
-    // account)
-    mmio::write(usart_brr, usartdiv);
+    unsafe {
+      // Set the hardware flow control (0x0 is the reset value but what the hell)
+      (*regmap).CR2 = 0x0;
 
-    // Enable the UART
-    mmio::set_bits(usart_cr1, USART_CR1_UE);
-  }
+      // Enable transmission and reception
+      (*regmap).CR1 |= USART_CR1_TE | USART_CR1_RE;
 
-  Usart {
-    base_addr: base_addr,
-  }
-}
+      // Actually set the baud rate (it's not perfect since the fractional bit is not taken into
+      // account)
+      (*regmap).BRR = usartdiv;
 
-impl Usart {
-  pub fn send_byte(&self, data: u8) {
-    let usart_sr = self.base_addr + USART_SR;
-    let usart_dr = self.base_addr + USART_DR;
-
-    // Wait until there's space for transmission
-    while mmio::read(usart_sr) & USART_SR_TXE == 0 { }
-
-    // Actually transmit the data
-    mmio::write_u8(usart_dr, data);
-
-    // Wait until the transmission is complete
-    while mmio::read(usart_sr) & USART_SR_TC != 0 { }
-  }
-
-  pub fn send_string(&self, string: &str) {
-    for c in string.chars() {
-      self.send_byte(c as u8);
+      // Enable the UART
+      (*regmap).CR1 |= USART_CR1_UE;
     }
   }
 
-  pub fn get_byte(&self) -> u8 {
-    let usart_sr = self.base_addr + USART_SR;
-    let usart_dr = self.base_addr + USART_DR;
+  fn send_byte(&self, byte: u8) {
+    let regmap = self.0 as *mut Usart_register_map;
 
-    while mmio::read(usart_sr) & USART_SR_RXNE == 0 { }
+    // Wait until there's space for transmission
+    unsafe {
+      while (*regmap).SR & USART_SR_TXE == 0 {}
 
-    (mmio::read(usart_dr) & 0xff) as u8
+      // Actually transmit the data
+      (*regmap).DR = byte as u32;
+
+      // Wait until the transmission is complete
+      while (*regmap).SR & USART_SR_TC != 0 {}
+    }
   }
 
-  pub fn get_string(&self, buf: &mut [u8]) {
+  fn get_byte(&self) -> u8 {
+    let regmap = self.0 as *mut Usart_register_map;
+
+    unsafe {
+      while (*regmap).SR & USART_SR_RXNE == 0 {}
+
+      (*regmap).DR as u8
+    }
+  }
+
+  fn get_string(&self, buf: &mut [u8]) {
     let mut i = 0;
 
     loop {

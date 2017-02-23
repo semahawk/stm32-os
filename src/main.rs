@@ -10,6 +10,8 @@ use core::fmt::Write;
 use core::slice;
 use core::str;
 
+use usart::Usart_trait;
+
 mod usart;
 mod rcc;
 mod gpio;
@@ -27,7 +29,7 @@ pub extern "C" fn main() -> ! {
 
   let gpioa = gpio::port(gpio::Port::A);
 
-  let mut usart2 = usart::new(usart::Port::Usart2, usart::Baudrate::_115200);
+  usart::USART2.initialize(usart::Baudrate::_115200);
 
   // Set the LED pin as output/push-pull
   gpioa.set_pin_mode(5, gpio::PinMode::OutPP);
@@ -36,19 +38,19 @@ pub extern "C" fn main() -> ! {
   gpioa.set_pin_mode(2, gpio::PinMode::OutAltPP);
   gpioa.set_pin_mode(3, gpio::PinMode::InFloat);
 
-  write!(usart2, "Clocks initialized\r\n");
-  write!(usart2, "SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
-  write!(usart2, "HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
-  write!(usart2, "PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
-  write!(usart2, "PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
-  write!(usart2, "\r\n");
-  write!(usart2, "Available command is 'gpio <set|clear> <port> <pin>'\r\n");
+  write!(usart::USART2, "Clocks initialized\r\n");
+  write!(usart::USART2, "SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
+  write!(usart::USART2, "HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
+  write!(usart::USART2, "PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
+  write!(usart::USART2, "PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
+  write!(usart::USART2, "\r\n");
+  write!(usart::USART2, "Available command is 'gpio <set|clear> <port> <pin>'\r\n");
 
   loop {
     let mut buf = [0u8; 32];
-    write!(usart2, ": ");
+    write!(usart::USART2, ": ");
 
-    usart2.get_string(&mut buf);
+    usart::USART2.get_string(&mut buf);
 
     let input = unsafe {
       str::from_utf8_unchecked(slice::from_raw_parts(buf.as_ptr(), buf.len()))
@@ -63,7 +65,7 @@ pub extern "C" fn main() -> ! {
             handler(args);
           },
           None => {
-            write!(usart2, "Unknown command: {}\r\n", command);
+            write!(usart::USART2, "Unknown command: {}\r\n", command);
           },
         }
       },
