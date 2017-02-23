@@ -24,6 +24,15 @@ SECTIONS
     *(.text*)
   } > FLASH
 
+  data_in_flash_start = .;
+
+  .data :
+  {
+    data_in_ram_start = .;
+    *(.data*)
+    data_in_ram_end = .;
+  } > RAM
+
   /DISCARD/ :
   {
     *(.ARM.exidx*)

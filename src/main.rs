@@ -24,6 +24,8 @@ mod cmd;
 pub extern "C" fn main() -> ! {
   rcc::initialize_clocks();
 
+  move_data_section_to_ram();
+
   rcc::enable(rcc::Periph::apb2_gpioa);
   rcc::enable(rcc::Periph::apb2_afio);
   rcc::enable(rcc::Periph::apb1_usart2);
@@ -93,6 +95,26 @@ mod exception {
     Some(dummy_handler), // PendSV
     Some(dummy_handler), // Systick
   ];
+}
+
+fn move_data_section_to_ram() {
+  // oh man..
+  extern {
+    static data_in_flash_start: u32;
+    static data_in_ram_start: u32;
+    static data_in_ram_end: u32;
+  }
+
+  let from = &data_in_flash_start as *const u32;
+  let mut to = &data_in_ram_start as *const u32;
+  let mut size = &data_in_ram_end as *const u32 as u32 - &data_in_ram_start as *const u32 as u32;
+
+  for i in 0..size {
+    unsafe {
+      core::ptr::write((&mut to as *mut _ as u32 + i) as *mut u8,
+              *((from as u32 + i) as *const u8));
+    }
+  }
 }
 
 #[no_mangle]
