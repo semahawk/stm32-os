@@ -41,13 +41,15 @@ struct Usart_register_map {
 }
 
 /// Base address + the peripheral clock
-#[derive(PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Usart(u32, rcc::Clock);
 
 pub const USART1: Usart = Usart(0x4001_3800, rcc::Clock::PCLK2);
 pub const USART2: Usart = Usart(0x4000_4400, rcc::Clock::PCLK1);
 pub const USART3: Usart = Usart(0x4000_4800, rcc::Clock::PCLK1);
 // TODO: UART4 and UART5
+
+pub static mut current: Option<Usart> = Some(USART2);
 
 #[derive(Copy,Clone)]
 pub enum Baudrate {
@@ -152,6 +154,26 @@ impl fmt::Write for Usart {
 
     Ok(())
   }
+}
+
+pub fn output_to(mut usart: Usart) {
+  unsafe {
+    current = Some(usart);
+  }
+}
+
+macro_rules! print {
+  ($($arg:tt)*) => ({
+    use core::fmt::Write;
+    unsafe {
+      match $crate::usart::current {
+        Some(ref mut usart) => {
+          usart.write_fmt(format_args!($($arg)*)).unwrap();
+        },
+        None => (),
+      }
+    }
+  });
 }
 
 /*

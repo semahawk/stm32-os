@@ -13,6 +13,7 @@ use core::str;
 use usart::Usart_trait;
 use gpio::Gpio_trait;
 
+#[macro_use]
 mod usart;
 mod rcc;
 mod gpio;
@@ -33,20 +34,22 @@ pub extern "C" fn main() -> ! {
   // Initialize USART2 (the one that goes through the debugger/the USB cable)
   usart::USART2.initialize(usart::Baudrate::_115200);
 
+  usart::output_to(usart::USART2);
+
   // Set the LED pin as output/push-pull
   gpio::GPIOA.set_pin_mode(5, gpio::PinMode::OutPP);
 
-  write!(usart::USART2, "Clocks initialized\r\n");
-  write!(usart::USART2, "SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
-  write!(usart::USART2, "HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
-  write!(usart::USART2, "PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
-  write!(usart::USART2, "PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
-  write!(usart::USART2, "\r\n");
-  write!(usart::USART2, "Available command is 'gpio <set|clear> <port> <pin>'\r\n");
+  print!("Clocks initialized\r\n");
+  print!("SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
+  print!("HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
+  print!("PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
+  print!("PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
+  print!("\r\n");
+  print!("Available command is 'gpio <set|clear> <port> <pin>'\r\n");
 
   loop {
     let mut buf = [0u8; 32];
-    write!(usart::USART2, ": ");
+    print!(": ");
 
     usart::USART2.get_string(&mut buf);
 
@@ -63,7 +66,7 @@ pub extern "C" fn main() -> ! {
             handler(args);
           },
           None => {
-            write!(usart::USART2, "Unknown command: {}\r\n", command);
+            print!("Unknown command: {}\r\n", command);
           },
         }
       },
