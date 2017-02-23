@@ -8,23 +8,14 @@
 
 use core::fmt;
 
-use mmio;
 use rcc;
 
-/// Status Register
-const USART_SR: u32 = 0x00;
 /// Read data register not empty (data ready to be read)
 const USART_SR_RXNE: u32 = 1 << 5;
 /// Transmission complete
 const USART_SR_TC: u32 = 1 << 6;
 /// Transmitter data register empty (ie. can send bytes?)
 const USART_SR_TXE: u32 = 1 << 7;
-/// Data Register
-const USART_DR: u32 = 0x04;
-/// Baud Rate Register
-const USART_BRR: u32 = 0x08;
-/// Control Register (1)
-const USART_CR1: u32 = 0x0c;
 /// UART enable bit
 const USART_CR1_UE: u32 = 1 << 13;
 /// Selects the word length:
@@ -35,8 +26,6 @@ const USART_CR1_M: u32 = 1 << 1;
 const USART_CR1_RE: u32 = 1 << 2;
 /// Transmitter enable
 const USART_CR1_TE: u32 = 1 << 3;
-/// UART Control Register (2)
-const USART_CR2: u32 = 0x10;
 
 #[repr(packed)]
 struct Usart_register_map {
