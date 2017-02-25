@@ -20,6 +20,7 @@ mod gpio;
 mod mmio;
 mod conf;
 mod cmd;
+mod timer;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
@@ -30,6 +31,10 @@ pub extern "C" fn main() -> ! {
   rcc::enable(rcc::Periph::apb2_gpioa);
   rcc::enable(rcc::Periph::apb2_afio);
   rcc::enable(rcc::Periph::apb1_usart2);
+  rcc::enable(rcc::Periph::apb1_tim2);
+
+  // Initialize the 'heartbeet' timer (1 million milliseconds for a 1 second period)
+  timer::TIM2.enable(1_000);
 
   // Initialize USART2 (the one that goes through the debugger/the USB cable)
   usart::USART2.initialize(usart::Baudrate::_115200);
@@ -76,13 +81,14 @@ pub extern "C" fn main() -> ! {
 }
 
 mod exception {
+  use timer;
   pub extern "C" fn dummy_handler() {
     unsafe { asm!("bkpt"); }
     loop {}
   }
 
   #[export_name = "_EXCEPTIONS"]
-  pub static EXCEPTIONS: [Option<extern "C" fn()>; 14] = [
+  pub static EXCEPTIONS: [Option<extern "C" fn()>; 45] = [
     Some(dummy_handler), // NMI
     Some(dummy_handler), // Hard fault
     Some(dummy_handler), // Memmanage fault
@@ -97,6 +103,37 @@ mod exception {
     None, // Reserved
     Some(dummy_handler), // PendSV
     Some(dummy_handler), // Systick
+    Some(dummy_handler), // Window Watchdog
+    Some(dummy_handler), // PVD through EXTI line detection
+    Some(dummy_handler), // Tamper
+    Some(dummy_handler), // RTC global interrupt
+    Some(dummy_handler), // Flash global interrupt
+    Some(dummy_handler), // RCC global interrupt
+    Some(dummy_handler), // EXTI line 0 interrupt
+    Some(dummy_handler), // EXTI line 1 interrupt
+    Some(dummy_handler), // EXTI line 2 interrupt
+    Some(dummy_handler), // EXTI line 3 interrupt
+    Some(dummy_handler), // EXTI line 4 interrupt
+    Some(dummy_handler), // DMA1 channel 1
+    Some(dummy_handler), // DMA1 channel 2
+    Some(dummy_handler), // DMA1 channel 3
+    Some(dummy_handler), // DMA1 channel 4
+    Some(dummy_handler), // DMA1 channel 5
+    Some(dummy_handler), // DMA1 channel 6
+    Some(dummy_handler), // DMA1 channel 7
+    Some(dummy_handler), // ADC1 and ADC2
+    Some(dummy_handler), // CAN1 TX interrupt
+    Some(dummy_handler), // CAN1 RX0 interrupt
+    Some(dummy_handler), // CAN1 RX1 interrupt
+    Some(dummy_handler), // CAN1 SCE interrupt
+    Some(dummy_handler), // EXTI line[9:5] interrupts
+    Some(dummy_handler), // TIM1 break interrupt
+    Some(dummy_handler), // TIM1 update interrupt
+    Some(dummy_handler), // TIM1 trigger and communication interrupts
+    Some(dummy_handler), // TIM1 capture compare interrupt
+    Some(timer::TIM2.irq_handler), // TIM2 global interrupt
+    Some(dummy_handler), // TIM3 global interrupt
+    Some(dummy_handler), // TIM4 global interrupt
   ];
 }
 

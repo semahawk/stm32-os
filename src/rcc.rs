@@ -39,6 +39,8 @@ const RCC_CFGR_MCO: u32 = 0b1111 << 24;
 const RCC_CIR: u32 = RCC + 0x08;
 /// Address of the APB1ENR register
 const RCC_APB1ENR: u32 = RCC + 0x1c;
+/// Bit that is in charge of enabling/disabling TIMER 2
+const RCC_APB1ENR_TIM2EN: u32 = 1 << 0;
 /// Bit that is in charge of enabling/disabling the USART2 port
 const RCC_APB1ENR_USART2EN: u32 = 1 << 17;
 /// Address of the APB2ENR register
@@ -69,6 +71,7 @@ const FLASH_ACR_PRFBTE: u32 = 0b1 << 4;
 
 pub enum Periph {
   apb1_usart2,
+  apb1_tim2,
   apb2_afio,
   apb2_gpioa,
   apb2_gpiob,
@@ -88,6 +91,7 @@ pub enum Clock {
 pub fn enable(periph: Periph) {
   let (reg, bit) = match periph {
     Periph::apb1_usart2 => (RCC_APB1ENR, RCC_APB1ENR_USART2EN),
+    Periph::apb1_tim2   => (RCC_APB1ENR, RCC_APB1ENR_TIM2EN),
     Periph::apb2_afio   => (RCC_APB2ENR, RCC_APB2ENR_AFIOEN),
     Periph::apb2_gpioa  => (RCC_APB2ENR, RCC_APB2ENR_IOPAEN),
     Periph::apb2_gpiob  => (RCC_APB2ENR, RCC_APB2ENR_IOPBEN),
