@@ -132,6 +132,15 @@ impl Usart_trait for Usart {
       let byte = self.get_byte();
       if i >= buf.len() { break; }
 
+      if byte == 0x8 || byte == 0x7f {
+        self.send_byte(0x8);  // backspace
+        self.send_byte(0x20); // space
+        self.send_byte(0x8);  // backspace again
+        i -= 1;
+        buf[i] = 0x0;
+        continue;
+      }
+
       if byte == 0xa || byte == 0xd {
         self.send_byte(0xa);
         self.send_byte(0xd);
