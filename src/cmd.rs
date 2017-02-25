@@ -9,6 +9,7 @@
 use core::str::Split;
 use core::fmt::Write;
 
+use usart::Usart_trait;
 use gpio::Gpio_trait;
 
 use gpio;
@@ -16,6 +17,7 @@ use usart;
 
 const commands: &'static [(&str, fn (Split<char>))] = &[
   ("gpio", gpio),
+  ("loadb", loadb),
 ];
 
 pub fn lookup_command(cmd: &str) -> Option<fn (Split<char>)> {
@@ -26,6 +28,39 @@ pub fn lookup_command(cmd: &str) -> Option<fn (Split<char>)> {
   }
 
   None
+}
+
+fn loadb(mut args: Split<char>) {
+  let address = match args.next() {
+    Some(address) => i32::from_str_radix(address, 16).ok().unwrap(),
+    None => {
+      print!("Usage: loadb <address>\r\n");
+      return;
+    }
+  };
+
+  let mut bytes_received = 0;
+  let mut address = address as *mut u8;
+  print!("Ready to receive file; will write to {:p}\r\n", address);
+
+  loop {
+    let byte = usart::USART2.get_byte();
+
+    if byte == 0x3 {
+      print!("Ending..\r\n");
+      break;
+    }
+
+    print!("Got byte: 0x{:x}\r\n", byte);
+
+    unsafe {
+      *address.offset(bytes_received) = byte;
+    }
+
+    bytes_received += 1;
+  }
+
+  print!("Received {} bytes\r\n", bytes_received);
 }
 
 fn gpio(mut args: Split<char>) {
