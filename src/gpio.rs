@@ -27,12 +27,6 @@ struct Gpio_register_map {
   LCK:  u32,
 }
 
-pub trait Gpio_trait {
-  fn enable_pin(&self, pin: u8);
-  fn disable_pin(&self, pin: u8);
-  fn set_pin_mode(&self, pin: u8, mode: PinMode);
-}
-
 #[derive(Debug)]
 pub struct Gpio(u32);
 
@@ -44,8 +38,8 @@ pub const GPIOE: Gpio = Gpio(0x4001_1800);
 pub const GPIOF: Gpio = Gpio(0x4001_1C00);
 pub const GPIOG: Gpio = Gpio(0x4001_2000);
 
-impl Gpio_trait for Gpio {
-  fn enable_pin(&self, pin: u8) {
+impl Gpio {
+  pub fn enable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
     let regmap = self.0 as *mut Gpio_register_map;
 
@@ -54,7 +48,7 @@ impl Gpio_trait for Gpio {
     }
   }
 
-  fn disable_pin(&self, pin: u8) {
+  pub fn disable_pin(&self, pin: u8) {
     /* FIXME sanitize 'num' (possible values: 0-15 inclusive) */
     let regmap = self.0 as *mut Gpio_register_map;
 
@@ -63,7 +57,7 @@ impl Gpio_trait for Gpio {
     }
   }
 
-  fn set_pin_mode(&self, pin: u8, mode: PinMode) {
+  pub fn set_pin_mode(&self, pin: u8, mode: PinMode) {
     let regmap = self.0 as *mut Gpio_register_map;
 
     let bits = match mode {

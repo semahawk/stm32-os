@@ -10,7 +10,6 @@ use core::str::Split;
 use core::fmt::Write;
 
 use usart::Usart_trait;
-use gpio::Gpio_trait;
 
 use gpio;
 use usart;

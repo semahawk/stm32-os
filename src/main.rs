@@ -11,7 +11,6 @@ use core::slice;
 use core::str;
 
 use usart::Usart_trait;
-use gpio::Gpio_trait;
 
 #[macro_use]
 mod usart;

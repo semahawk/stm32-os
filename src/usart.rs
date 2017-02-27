@@ -7,7 +7,6 @@
 //
 
 use core::fmt;
-use gpio::Gpio_trait;
 
 use rcc;
 use gpio;
