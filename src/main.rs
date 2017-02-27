@@ -28,6 +28,12 @@ pub extern "C" fn main() -> ! {
   move_data_section_to_ram();
 
   rcc::enable(rcc::Periph::apb2_gpioa);
+  rcc::enable(rcc::Periph::apb2_gpiob);
+  rcc::enable(rcc::Periph::apb2_gpioc);
+  rcc::enable(rcc::Periph::apb2_gpiod);
+  rcc::enable(rcc::Periph::apb2_gpioe);
+  rcc::enable(rcc::Periph::apb2_gpiof);
+  rcc::enable(rcc::Periph::apb2_gpiog);
   rcc::enable(rcc::Periph::apb2_afio);
   rcc::enable(rcc::Periph::apb1_usart2);
 

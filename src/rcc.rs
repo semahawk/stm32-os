@@ -51,6 +51,12 @@ const RCC_APB2ENR_IOPBEN: u32 = 1 << 3;
 const RCC_APB2ENR_IOPCEN: u32 = 1 << 4;
 /// Bit that is in charge of enabling/disabling the GPIOD port
 const RCC_APB2ENR_IOPDEN: u32 = 1 << 5;
+/// Bit that is in charge of enabling/disabling the GPIOD port
+const RCC_APB2ENR_IOPEEN: u32 = 1 << 6;
+/// Bit that is in charge of enabling/disabling the GPIOD port
+const RCC_APB2ENR_IOPFEN: u32 = 1 << 7;
+/// Bit that is in charge of enabling/disabling the GPIOD port
+const RCC_APB2ENR_IOPGEN: u32 = 1 << 8;
 /// Bit that is in charge of setting the alternate function of the IO clock
 const RCC_APB2ENR_AFIOEN: u32 = 1 << 0;
 
@@ -74,6 +80,9 @@ pub enum Periph {
   apb2_gpiob,
   apb2_gpioc,
   apb2_gpiod,
+  apb2_gpioe,
+  apb2_gpiof,
+  apb2_gpiog,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -93,6 +102,9 @@ pub fn enable(periph: Periph) {
     Periph::apb2_gpiob  => (RCC_APB2ENR, RCC_APB2ENR_IOPBEN),
     Periph::apb2_gpioc  => (RCC_APB2ENR, RCC_APB2ENR_IOPCEN),
     Periph::apb2_gpiod  => (RCC_APB2ENR, RCC_APB2ENR_IOPDEN),
+    Periph::apb2_gpioe  => (RCC_APB2ENR, RCC_APB2ENR_IOPEEN),
+    Periph::apb2_gpiof  => (RCC_APB2ENR, RCC_APB2ENR_IOPFEN),
+    Periph::apb2_gpiog  => (RCC_APB2ENR, RCC_APB2ENR_IOPGEN),
   };
 
   unsafe {
