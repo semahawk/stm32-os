@@ -10,8 +10,6 @@ use core::fmt::Write;
 use core::slice;
 use core::str;
 
-use usart::Usart_trait;
-
 #[macro_use]
 mod usart;
 mod rcc;

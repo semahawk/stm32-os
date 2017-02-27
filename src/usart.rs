@@ -56,15 +56,8 @@ pub enum Baudrate {
   _115200 = 115200,
 }
 
-pub trait Usart_trait {
-  fn initialize(self, baudrate: Baudrate);
-  fn send_byte(&self, byte: u8);
-  fn get_byte(&self) -> u8;
-  fn get_string(&self, buf: &mut [u8]);
-}
-
-impl Usart_trait for Usart {
-  fn initialize(self, baudrate: Baudrate) {
+impl Usart {
+  pub fn initialize(self, baudrate: Baudrate) {
     let regmap = self.0 as *mut Usart_register_map;
 
     let mut usartdiv = 0;
@@ -99,7 +92,7 @@ impl Usart_trait for Usart {
     }
   }
 
-  fn send_byte(&self, byte: u8) {
+  pub fn send_byte(&self, byte: u8) {
     let regmap = self.0 as *mut Usart_register_map;
 
     // Wait until there's space for transmission
@@ -114,7 +107,7 @@ impl Usart_trait for Usart {
     }
   }
 
-  fn get_byte(&self) -> u8 {
+  pub fn get_byte(&self) -> u8 {
     let regmap = self.0 as *mut Usart_register_map;
 
     unsafe {
@@ -124,7 +117,7 @@ impl Usart_trait for Usart {
     }
   }
 
-  fn get_string(&self, buf: &mut [u8]) {
+  pub fn get_string(&self, buf: &mut [u8]) {
     let mut i = 0;
 
     loop {
