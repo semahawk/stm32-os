@@ -6,6 +6,7 @@
 // Created on: 16 Feb 2017 21:36:10 +0100 (CET)
 //
 
+#[derive(Debug, Clone, Copy)]
 pub enum PinMode {
   Analog,
   InFloat,

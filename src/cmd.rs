@@ -61,13 +61,16 @@ fn loadb(mut args: Split<char>) {
 }
 
 fn gpio(mut args: Split<char>) {
-  enum Op { set, clear };
+  #[derive(PartialEq)]
+  enum Op { set, clear, mode };
 
   let op = match args.next() {
     Some("set") => Op::set,
     Some("clear") => Op::clear,
+    Some("mode") => Op::mode,
     _ => {
       print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
+      print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
       return;
     }
   };
@@ -76,6 +79,7 @@ fn gpio(mut args: Split<char>) {
     Some("A") | Some("a") => (gpio::GPIOA, "A"),
     _ => {
       print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
+      print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
       return;
     }
   };
@@ -84,12 +88,14 @@ fn gpio(mut args: Split<char>) {
     Some(pin) => pin.parse::<u8>().unwrap(),
     None => {
       print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
+      print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
       return;
     }
   };
 
   if pin > 15 {
     print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
+    print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
     return;
   }
 
@@ -101,7 +107,27 @@ fn gpio(mut args: Split<char>) {
     Op::clear => {
       gpio.disable_pin(pin);
       print!("Disabled pin {} in GPIO port {}\r\n", pin, port);
-    }
+    },
+    Op::mode => {
+      let mode = {
+        match args.next() {
+          Some("analog") => gpio::PinMode::Analog,
+          Some("infloat") => gpio::PinMode::InFloat,
+          Some("inpp") => gpio::PinMode::InPP,
+          Some("outpp") => gpio::PinMode::OutPP,
+          Some("outdrain") => gpio::PinMode::OutDrain,
+          Some("outaltpp") => gpio::PinMode::OutAltPP,
+          Some("outaltdrain") => gpio::PinMode::OutAltDrain,
+          Some(_) | None => {
+            print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
+            return;
+          }
+        }
+      };
+
+      gpio.set_pin_mode(pin, mode);
+      print!("Mode set to {:?} for pin {} in GPIO port {}\r\n", mode, pin, port);
+    },
   }
 }
 
