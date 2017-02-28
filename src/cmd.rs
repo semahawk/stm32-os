@@ -69,17 +69,23 @@ fn gpio(mut args: Split<char>) {
     Some("clear") => Op::clear,
     Some("mode") => Op::mode,
     _ => {
-      print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
-      print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
+      print!("Usage: gpio <set|clear> <A|B|C|D|E|F|G> <0-15>\r\n");
+      print!("Usage: gpio <mode> <A|B|C|D|E|F|G> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
       return;
     }
   };
 
   let (gpio, port) = match args.next() {
     Some("A") | Some("a") => (gpio::GPIOA, "A"),
+    Some("B") | Some("b") => (gpio::GPIOB, "B"),
+    Some("C") | Some("c") => (gpio::GPIOC, "C"),
+    Some("D") | Some("d") => (gpio::GPIOD, "D"),
+    Some("E") | Some("e") => (gpio::GPIOE, "E"),
+    Some("F") | Some("f") => (gpio::GPIOF, "F"),
+    Some("G") | Some("g") => (gpio::GPIOG, "G"),
     _ => {
-      print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
-      print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
+      print!("Usage: gpio <set|clear> <A|B|C|D|E|F|G> <0-15>\r\n");
+      print!("Usage: gpio <mode> <A|B|C|D|E|F|G> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
       return;
     }
   };
@@ -87,15 +93,15 @@ fn gpio(mut args: Split<char>) {
   let pin = match args.next() {
     Some(pin) => pin.parse::<u8>().unwrap(),
     None => {
-      print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
-      print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
+      print!("Usage: gpio <set|clear> <A|B|C|D|E|F|G> <0-15>\r\n");
+      print!("Usage: gpio <mode> <A|B|C|D|E|F|G> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
       return;
     }
   };
 
   if pin > 15 {
-    print!("Usage: gpio <set|clear> <A> <0-15>\r\n");
-    print!("Usage: gpio <mode> <A> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
+    print!("Usage: gpio <set|clear> <A|B|C|D|E|F|G> <0-15>\r\n");
+    print!("Usage: gpio <mode> <A|B|C|D|E|F|G> <0-15> <analog|infloat|inpp|outpp|outdrain|outaltpp|outaltdrain>\r\n");
     return;
   }
 
