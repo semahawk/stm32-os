@@ -45,6 +45,12 @@ pub extern "C" fn main() -> ! {
   // Configure SPI1
   spi::SPI1.initialize();
 
+  // Configure the I2C GPIO pins
+  // SCL - control line
+  gpio::GPIOB.set_pin_mode(6, gpio::PinMode::OutAltDrain);
+  // SDA - data line
+  gpio::GPIOB.set_pin_mode(7, gpio::PinMode::OutAltDrain);
+
   print!("Clocks initialized\r\n");
   print!("SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
   print!("HCLK   = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::HCLK));
