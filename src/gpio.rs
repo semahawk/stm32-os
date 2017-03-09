@@ -17,6 +17,13 @@ pub enum PinMode {
   OutAltDrain,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum PinSpeed {
+  Max2MHz,
+  Max10MHz,
+  Max50MHz,
+}
+
 #[repr(packed)]
 struct Gpio_register_map {
   CRL:  u32,
@@ -72,7 +79,22 @@ impl Gpio {
     };
 
     unsafe {
-      (*regmap).CRL = ((*regmap).CRL & !(0b1111 << (4 * pin))) | (bits << (4 * pin))
+      (*regmap).CRL = ((*regmap).CRL & !(0b1111 << (4 * pin))) | (bits << (4 * pin));
+    }
+  }
+
+  pub fn set_pin_speed(&self, pin: u8, speed: PinSpeed) {
+    let regmap = self.0 as *mut Gpio_register_map;
+
+    // TODO only makes sense for output pins - sanitize!
+    let bits = match speed {
+      PinSpeed::Max2MHz  => 0b10,
+      PinSpeed::Max10MHz => 0b01,
+      PinSpeed::Max50MHz => 0b11,
+    };
+
+    unsafe {
+      (*regmap).CRL = ((*regmap).CRL & !(0b11 << (4 * pin))) | (bits << (4 * pin));
     }
   }
 }

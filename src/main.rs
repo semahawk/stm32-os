@@ -17,6 +17,8 @@ mod gpio;
 mod mmio;
 mod conf;
 mod cmd;
+mod spi;
+mod mcp23s08;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
@@ -32,6 +34,7 @@ pub extern "C" fn main() -> ! {
   rcc::enable(rcc::Periph::apb2_gpiof);
   rcc::enable(rcc::Periph::apb2_gpiog);
   rcc::enable(rcc::Periph::apb2_afio);
+  rcc::enable(rcc::Periph::apb2_spi1);
   rcc::enable(rcc::Periph::apb1_usart2);
 
   // Initialize USART2 (the one that goes through the debugger/the USB cable)
@@ -39,8 +42,8 @@ pub extern "C" fn main() -> ! {
 
   usart::output_to(usart::USART2);
 
-  // Set the LED pin as output/push-pull
-  gpio::GPIOA.set_pin_mode(5, gpio::PinMode::OutPP);
+  // Configure SPI1
+  spi::SPI1.initialize();
 
   print!("Clocks initialized\r\n");
   print!("SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
@@ -48,6 +51,11 @@ pub extern "C" fn main() -> ! {
   print!("PCLK1  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK1));
   print!("PCLK2  = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::PCLK2));
   print!("\r\n");
+
+  print!("Using MCP23S08 through SPI1 to enable port GP0\r\n");
+  mcp23s08::write_reg(spi::SPI1, mcp23s08::IODIR, !0x01);
+  mcp23s08::write_reg(spi::SPI1, mcp23s08::OLAT, 0x01);
+
   print!("Available command is 'gpio <set|clear> <port> <pin>'\r\n");
 
   loop {

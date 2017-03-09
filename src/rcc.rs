@@ -57,6 +57,8 @@ const RCC_APB2ENR_IOPEEN: u32 = 1 << 6;
 const RCC_APB2ENR_IOPFEN: u32 = 1 << 7;
 /// Bit that is in charge of enabling/disabling the GPIOD port
 const RCC_APB2ENR_IOPGEN: u32 = 1 << 8;
+/// Bit that is in charge of enabling/disabling SPI1
+const RCC_APB2ENR_SPI1EN: u32 = 1 << 12;
 /// Bit that is in charge of setting the alternate function of the IO clock
 const RCC_APB2ENR_AFIOEN: u32 = 1 << 0;
 
@@ -83,6 +85,7 @@ pub enum Periph {
   apb2_gpioe,
   apb2_gpiof,
   apb2_gpiog,
+  apb2_spi1,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -98,6 +101,7 @@ pub fn enable(periph: Periph) {
   let (reg, bit) = match periph {
     Periph::apb1_usart2 => (RCC_APB1ENR, RCC_APB1ENR_USART2EN),
     Periph::apb2_afio   => (RCC_APB2ENR, RCC_APB2ENR_AFIOEN),
+    Periph::apb2_spi1   => (RCC_APB2ENR, RCC_APB2ENR_SPI1EN),
     Periph::apb2_gpioa  => (RCC_APB2ENR, RCC_APB2ENR_IOPAEN),
     Periph::apb2_gpiob  => (RCC_APB2ENR, RCC_APB2ENR_IOPBEN),
     Periph::apb2_gpioc  => (RCC_APB2ENR, RCC_APB2ENR_IOPCEN),

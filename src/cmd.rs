@@ -11,9 +11,13 @@ use core::fmt::Write;
 
 use gpio;
 use usart;
+use spi;
+use mcp23s08;
 
 const commands: &'static [(&str, fn (Split<char>))] = &[
   ("gpio", gpio),
+  ("spi", spi),
+  ("mcp", mcp),
   ("loadb", loadb),
 ];
 
@@ -135,6 +139,59 @@ fn gpio(mut args: Split<char>) {
       print!("Mode set to {:?} for pin {} in GPIO port {}\r\n", mode, pin, port);
     },
   }
+}
+
+fn spi(mut args: Split<char>) {
+  let spi = match args.next() {
+    Some("1") => spi::SPI1,
+    Some(_) | None => {
+      print!("Usage: spi <1> <output value>\r\n");
+      return;
+    },
+  };
+
+  let value = match args.next() {
+    Some(value) => u8::from_str_radix(value, 16).ok().unwrap(),
+    None => {
+      print!("Usage: spi <1> <output value>\r\n");
+      return;
+    },
+  };
+
+  let input_value = spi.send_recv_byte(value);
+
+  print!("Returned: {:x}\r\n", input_value);
+}
+
+fn mcp(mut args: Split<char>) {
+  #[derive(PartialEq)]
+  enum Op { Write };
+
+  let op = match args.next() {
+    Some("write") => Op::Write,
+    Some (_) | None => {
+      print!("Usage: mcp write <reg> <value>\r\n");
+      return;
+    },
+  };
+
+  let reg = match args.next() {
+    Some(reg) => u8::from_str_radix(reg, 16).ok().unwrap(),
+    None => {
+      print!("Usage: mcp write <reg> <value>\r\n");
+      return;
+    },
+  };
+
+  let value = match args.next() {
+    Some(value) => u8::from_str_radix(value, 16).ok().unwrap(),
+    None => {
+      print!("Usage: mcp write <reg> <value>\r\n");
+      return;
+    },
+  };
+
+  mcp23s08::write_reg(spi::SPI1, reg, value);
 }
 
 /*
