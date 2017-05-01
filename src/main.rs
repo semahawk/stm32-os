@@ -19,6 +19,7 @@ mod conf;
 mod cmd;
 mod spi;
 mod mcp23s08;
+mod i2c;
 
 #[export_name = "_reset"]
 pub extern "C" fn main() -> ! {
@@ -46,10 +47,7 @@ pub extern "C" fn main() -> ! {
   spi::SPI1.initialize();
 
   // Configure the I2C GPIO pins
-  // SCL - control line
-  gpio::GPIOB.set_pin_mode(6, gpio::PinMode::OutAltDrain);
-  // SDA - data line
-  gpio::GPIOB.set_pin_mode(7, gpio::PinMode::OutAltDrain);
+  i2c::I2C1.initialize();
 
   print!("Clocks initialized\r\n");
   print!("SYSCLK = {} Hz\r\n", rcc::get_clock_speed(rcc::Clock::SYSCLK));
@@ -61,6 +59,13 @@ pub extern "C" fn main() -> ! {
   print!("Using MCP23S08 through SPI1 to enable port GP0\r\n");
   mcp23s08::write_reg(spi::SPI1, mcp23s08::IODIR, !0x01);
   mcp23s08::write_reg(spi::SPI1, mcp23s08::OLAT, 0x01);
+
+  i2c::I2C1.generate_start();
+  i2c::I2C1.send_address(0xa0);
+  i2c::I2C1.send_byte(0x00);
+  i2c::I2C1.send_byte(0xca);
+  i2c::I2C1.send_byte(0xfe);
+  i2c::I2C1.generate_stop();
 
   print!("Available command is 'gpio <set|clear> <port> <pin>'\r\n");
 
